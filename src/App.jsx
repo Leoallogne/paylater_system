@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaInfoCircle, FaHome, FaShoppingBag, FaUser, FaRocket, FaCoffee } from 'react-icons/fa';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Header from './components/Header';
 import ProductCard from './components/ProductCard';
 import CartDrawer from './components/CartDrawer';
@@ -380,6 +381,8 @@ function App() {
         <FaInfoCircle />
         <span>{toastMessage}</span>
       </div>
+
+      <SpeedInsights />
     </>
   );
 }
