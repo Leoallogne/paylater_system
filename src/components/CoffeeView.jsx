@@ -65,7 +65,7 @@ const coffeeShops = [
   }
 ];
 
-const CoffeeView = () => {
+const CoffeeView = ({ balance, setBalance, points, setPoints, orders, setOrders, showToast, paylaterLimit, setPaylaterLimit, paylaterUsed, setPaylaterUsed }) => {
   const [activeFilter, setActiveFilter] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('popular');
@@ -215,6 +215,17 @@ const CoffeeView = () => {
         isOpen={!!selectedShop} 
         shop={selectedShop} 
         onClose={() => setSelectedShop(null)} 
+        balance={balance}
+        setBalance={setBalance}
+        points={points}
+        setPoints={setPoints}
+        orders={orders}
+        setOrders={setOrders}
+        showToast={showToast}
+        paylaterLimit={paylaterLimit}
+        setPaylaterLimit={setPaylaterLimit}
+        paylaterUsed={paylaterUsed}
+        setPaylaterUsed={setPaylaterUsed}
       />
 
     </div>

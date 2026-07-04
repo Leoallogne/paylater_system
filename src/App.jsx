@@ -298,7 +298,19 @@ function App() {
         )}
 
         {activeTab === 'coffee' && (
-          <CoffeeView />
+          <CoffeeView 
+            balance={balance} 
+            setBalance={setBalance} 
+            points={points} 
+            setPoints={setPoints}
+            orders={orders}
+            setOrders={setOrders}
+            showToast={showToast}
+            paylaterLimit={paylaterLimit}
+            setPaylaterLimit={setPaylaterLimit}
+            paylaterUsed={paylaterUsed}
+            setPaylaterUsed={setPaylaterUsed}
+          />
         )}
       </main>
 
