@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { FaUser, FaHistory, FaHeadset, FaPaperPlane, FaBoxOpen, FaCheckCircle, FaWallet, FaChevronRight, FaGift, FaGamepad, FaCoins } from 'react-icons/fa';
+import { FaUser, FaHistory, FaHeadset, FaPaperPlane, FaBoxOpen, FaCheckCircle, FaWallet, FaChevronRight, FaGift, FaGamepad, FaCoins, FaCalendarDay } from 'react-icons/fa';
 import DailyRewardModal from './DailyRewardModal';
 import SpinWheelModal from './SpinWheelModal';
 import OrderTrackingModal from './OrderTrackingModal';
 import { formatRupiah } from '../utils';
 
-const ProfileView = ({ balance, setBalance, points, setPoints, orders, _setOrders, showToast }) => {
+const ProfileView = ({ balance, setBalance, points, setPoints, orders, _setOrders, showToast, paylaterLimit, _setPaylaterLimit, paylaterUsed, setPaylaterUsed }) => {
   const [activeMenu, setActiveMenu] = useState('history');
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showSpinWheel, setShowSpinWheel] = useState(false);
@@ -270,6 +270,13 @@ Tim support kami sedang melakukan verifikasi data akun Anda. Mohon ditunggu pali
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}><FaHeadset /> Pusat Bantuan (CS)</div>
             <FaChevronRight className="menu-chevron" />
           </div>
+          <div
+            className={`profile-menu-item-premium ${activeMenu === 'paylater' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('paylater')}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}><FaCalendarDay /> NexPayLater</div>
+            <FaChevronRight className="menu-chevron" />
+          </div>
         </div>
       </div>
 
@@ -356,6 +363,104 @@ Tim support kami sedang melakukan verifikasi data akun Anda. Mohon ditunggu pali
                 <FaPaperPlane />
               </button>
             </form>
+          </div>
+        )}
+
+        {activeMenu === 'paylater' && (
+          <div className="glass order-history-card-premium" style={{ animation: 'fadeIn 0.5s ease-out' }}>
+            <div className="history-header">
+              <h2 className="section-title" style={{ fontSize: '1.5rem', marginBottom: 0 }}>Dasbor <span>NexPayLater</span></h2>
+              <span style={{ fontSize: '0.8rem', background: 'rgba(255, 215, 0, 0.1)', color: '#FFD700', padding: '4px 10px', borderRadius: '12px', border: '1px solid rgba(255,215,0,0.3)', fontWeight: 'bold' }}>Gold Tier</span>
+            </div>
+
+            {/* PayLater Limit Card */}
+            <div style={{ background: 'linear-gradient(135deg, #18191e 0%, #06070a 100%)', border: '1px solid rgba(255,215,0,0.2)', borderRadius: '20px', padding: '1.8rem', marginBottom: '2rem', position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.4)' }}>
+              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'rgba(255, 215, 0, 0.05)', borderRadius: '50%', filter: 'blur(30px)' }}></div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>Sisa Limit Tersedia</span>
+                <span style={{ color: '#FFD700', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bunga 0% Aktif</span>
+              </div>
+              <h1 style={{ fontSize: '2.4rem', color: 'white', fontWeight: '900', margin: '0 0 1.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatRupiah(paylaterLimit - paylaterUsed)}</h1>
+              
+              <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginBottom: '1.5rem' }}>
+                <div style={{ height: '100%', background: 'linear-gradient(90deg, #FFD700, #FFA500)', width: `${((paylaterLimit - paylaterUsed) / paylaterLimit) * 100}%`, transition: 'all 0.5s ease' }}></div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.2rem' }}>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '3px' }}>Total Limit Kredit</span>
+                  <strong style={{ color: 'white', fontSize: '1rem' }}>{formatRupiah(paylaterLimit)}</strong>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '3px' }}>Tagihan Aktif</span>
+                  <strong style={{ color: '#ff5252', fontSize: '1rem' }}>{formatRupiah(paylaterUsed)}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Repayment and Bill detail */}
+            {paylaterUsed > 0 ? (
+              <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+                  <div>
+                    <h4 style={{ margin: 0, color: 'white', fontSize: '1rem' }}>Tagihan Bulan Ini</h4>
+                    <p style={{ margin: '3px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Jatuh tempo pada 25 Jul 2026</p>
+                  </div>
+                  <strong style={{ fontSize: '1.3rem', color: '#ff5252' }}>{formatRupiah(paylaterUsed)}</strong>
+                </div>
+
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => {
+                    if (balance >= paylaterUsed) {
+                      setBalance(prev => prev - paylaterUsed);
+                      setPaylaterUsed(0);
+                      showToast("Pembayaran Tagihan NexPayLater Berhasil!");
+                    } else {
+                      showToast("Saldo E-Wallet tidak cukup untuk membayar tagihan!");
+                    }
+                  }}
+                  style={{ 
+                    width: '100%', 
+                    padding: '0.9rem', 
+                    borderRadius: '12px', 
+                    fontWeight: 'bold', 
+                    background: 'linear-gradient(45deg, #FFD700, #FFA500)', 
+                    border: 'none', 
+                    color: '#0B0C10',
+                    boxShadow: '0 6px 15px rgba(255, 215, 0, 0.2)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Bayar Tagihan Sekarang
+                </button>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '2.5rem 1.5rem', background: 'rgba(76, 175, 80, 0.05)', border: '1px dashed rgba(76, 175, 80, 0.2)', borderRadius: '16px', color: '#4CAF50', marginBottom: '2rem' }}>
+                <FaCheckCircle size={32} style={{ marginBottom: '10px' }} />
+                <h4 style={{ margin: 0, fontSize: '1.1rem' }}>Tidak Ada Tagihan Aktif</h4>
+                <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Limit kredit Anda utuh. Silakan gunakan NexPayLater pada saat checkout.</p>
+              </div>
+            )}
+
+            {/* Credit Score & Perks */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '20px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.2rem' }}>
+                <h4 style={{ margin: '0 0 10px', color: 'white', fontSize: '0.95rem' }}>Keuntungan NexPayLater</h4>
+                <ul style={{ paddingLeft: '15px', margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <li>Bunga 0% untuk cicilan 1x (bayar bulan depan).</li>
+                  <li>Metode pembayaran aman terverifikasi sistem OJK.</li>
+                  <li>Dapatkan tambahan NexPoints gratis setiap bertransaksi.</li>
+                </ul>
+              </div>
+              
+              <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>Skor Kredit</div>
+                <div style={{ fontSize: '2rem', color: '#4CAF50', fontWeight: 'bold', textShadow: '0 0 10px rgba(76, 175, 80, 0.2)' }}>780</div>
+                <div style={{ fontSize: '0.7rem', color: '#4CAF50', background: 'rgba(76, 175, 80, 0.1)', padding: '2px 8px', borderRadius: '10px', marginTop: '5px', fontWeight: 'bold' }}>Sangat Baik</div>
+              </div>
+            </div>
           </div>
         )}
       </div>

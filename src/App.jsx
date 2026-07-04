@@ -62,6 +62,24 @@ function App() {
     localStorage.setItem('nex_orders', JSON.stringify(orders));
   }, [orders]);
 
+  const [paylaterLimit, setPaylaterLimit] = useState(() => {
+    const saved = localStorage.getItem('nex_paylater_limit');
+    return saved !== null ? Number(saved) : 10000000;
+  });
+
+  const [paylaterUsed, setPaylaterUsed] = useState(() => {
+    const saved = localStorage.getItem('nex_paylater_used');
+    return saved !== null ? Number(saved) : 1500000;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('nex_paylater_limit', paylaterLimit.toString());
+  }, [paylaterLimit]);
+
+  useEffect(() => {
+    localStorage.setItem('nex_paylater_used', paylaterUsed.toString());
+  }, [paylaterUsed]);
+
   // Extract unique categories for pills
   const categories = ['Semua', ...new Set(productsData.map(p => p.category))];
 
@@ -137,11 +155,15 @@ function App() {
   };
 
   // Payment Success
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (method) => {
     setIsPaymentModalOpen(false);
     
-    // Deduct E-Wallet Balance
-    setBalance(prev => prev - checkoutTotal);
+    // Deduct E-Wallet Balance only if ewallet was selected
+    if (method === 'ewallet') {
+      setBalance(prev => prev - checkoutTotal);
+    } else if (method === 'paylater') {
+      setPaylaterUsed(prev => prev + checkoutTotal);
+    }
 
     // Calculate & Add NexPoints Reward (e.g., 10% of total in points, or 1 point per 10k IDR)
     const pointsGained = Math.max(50, Math.round(checkoutTotal * 0.0001)); // 1 point per 10k IDR, min 50 points
@@ -263,6 +285,10 @@ function App() {
             orders={orders}
             _setOrders={setOrders}
             showToast={showToast}
+            paylaterLimit={paylaterLimit}
+            setPaylaterLimit={setPaylaterLimit}
+            paylaterUsed={paylaterUsed}
+            setPaylaterUsed={setPaylaterUsed}
           />
         )}
 
@@ -295,6 +321,12 @@ function App() {
         totalAmount={checkoutTotal}
         onSuccess={handlePaymentSuccess}
         cart={cart}
+        paylaterLimit={paylaterLimit}
+        paylaterUsed={paylaterUsed}
+        setPaylaterUsed={setPaylaterUsed}
+        balance={balance}
+        setBalance={setBalance}
+        showToast={showToast}
       />
 
       <ProductDetailModal 

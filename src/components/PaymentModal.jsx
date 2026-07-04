@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { FaTimes, FaQrcode, FaWallet, FaBuilding, FaCreditCard, FaCheckCircle, FaSpinner, FaLock, FaShieldAlt, FaCopy, FaInfoCircle } from 'react-icons/fa';
+import { FaTimes, FaQrcode, FaWallet, FaBuilding, FaCreditCard, FaCheckCircle, FaSpinner, FaLock, FaShieldAlt, FaCopy, FaInfoCircle, FaCalendarDay } from 'react-icons/fa';
 import { formatRupiah } from '../utils';
 
-const PaymentModal = ({ isOpen, onClose, totalAmount, onSuccess, cart }) => {
+const PaymentModal = ({ isOpen, onClose, totalAmount, onSuccess, cart, paylaterLimit, paylaterUsed, _setPaylaterUsed, balance, _setBalance, _showToast }) => {
   const [selectedMethod, setSelectedMethod] = useState('');
   const [subMethod, setSubMethod] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -30,6 +30,22 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onSuccess, cart }) => {
 
   const handlePay = () => {
     if (!selectedMethod) return;
+
+    if (selectedMethod === 'ewallet') {
+      if (balance < grandTotal) {
+        alert("❌ Saldo E-Wallet tidak cukup!\n\nSilakan lakukan Top Up terlebih dahulu.");
+        return;
+      }
+    }
+
+    if (selectedMethod === 'paylater') {
+      const available = paylaterLimit - paylaterUsed;
+      if (available < grandTotal) {
+        alert("❌ Limit NexPayLater tidak mencukupi!\n\nSilakan bayar tagihan aktif terlebih dahulu.");
+        return;
+      }
+    }
+
     setIsProcessing(true);
 
     const inv = 'INV/' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '/MPL/' + Math.floor(Math.random()*900 + 100);
@@ -139,7 +155,7 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onSuccess, cart }) => {
                 className="btn btn-primary" 
                 onClick={() => {
                   setShowReceipt(false);
-                  onSuccess();
+                  onSuccess(selectedMethod);
                 }}
                 style={{ flex: 1, borderRadius: '10px', padding: '0.8rem', fontWeight: 'bold' }}
               >
@@ -194,12 +210,13 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onSuccess, cart }) => {
               <div style={{ padding: '1.5rem 2rem' }}>
                 <p style={{ fontSize: '0.95rem', marginBottom: '1rem', fontWeight: '600', color: 'white' }}>Pilih Metode Pembayaran</p>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.6rem', marginBottom: '1.5rem' }}>
                   {[
                     { id: 'qris', icon: <FaQrcode />, label: 'QRIS' },
                     { id: 'ewallet', icon: <FaWallet />, label: 'E-Wallet' },
                     { id: 'va', icon: <FaBuilding />, label: 'Transfer VA' },
-                    { id: 'card', icon: <FaCreditCard />, label: 'Kartu Kredit' }
+                    { id: 'card', icon: <FaCreditCard />, label: 'Kartu Kredit' },
+                    { id: 'paylater', icon: <FaCalendarDay />, label: 'PayLater' }
                   ].map(method => (
                     <div 
                       key={method.id}
@@ -325,13 +342,50 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onSuccess, cart }) => {
                       </div>
                     </div>
                   )}
+
+                  {selectedMethod === 'paylater' && (
+                    <div style={{ animation: 'fadeIn 0.3s' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', background: 'rgba(255, 215, 0, 0.05)', padding: '0.8rem 1rem', borderRadius: '12px', border: '1px solid rgba(255, 215, 0, 0.15)' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Limit NexPayLater Tersedia</span>
+                        <strong style={{ color: '#FFD700', fontSize: '1.05rem' }}>{formatRupiah(paylaterLimit - paylaterUsed)}</strong>
+                      </div>
+
+                      {paylaterLimit - paylaterUsed >= grandTotal ? (
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#4CAF50', fontSize: '0.8rem', marginBottom: '1rem' }}>
+                            <FaCheckCircle /> Limit kredit mencukupi. Pembayaran akan dibebankan ke limit paylater.
+                          </div>
+                          
+                          <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem' }}>Pilih Tenor Cicilan</label>
+                          <select 
+                            onChange={(e) => setSubMethod(e.target.value)} 
+                            value={subMethod || 'Bulan Depan (Bunga 0%)'}
+                            style={{ width: '100%', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.8rem 1rem', borderRadius: '8px', outline: 'none', cursor: 'pointer' }}
+                          >
+                            <option value="Bulan Depan (Bunga 0%)">Bulan Depan (Bunga 0%)</option>
+                            <option value="Cicilan 3x (Bunga 2%)">3x Cicilan (Bunga 2% / bln)</option>
+                            <option value="Cicilan 6x (Bunga 4%)">6x Cicilan (Bunga 4% / bln)</option>
+                          </select>
+                        </div>
+                      ) : (
+                        <div style={{ padding: '1rem', background: 'rgba(255, 82, 82, 0.1)', border: '1px solid rgba(255, 82, 82, 0.2)', borderRadius: '10px', color: '#ff5252', fontSize: '0.85rem', textAlign: 'center' }}>
+                          ⚠️ Limit Anda tidak mencukupi untuk melakukan transaksi sebesar {formatRupiah(grandTotal)}. Harap bayar tagihan aktif terlebih dahulu di Halaman Profil.
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <button 
                   className="btn btn-primary" 
                   onClick={handlePay} 
-                  disabled={!selectedMethod || isProcessing || ((selectedMethod === 'ewallet' || selectedMethod === 'va') && !subMethod)}
-                  style={{ width: '100%', padding: '1.2rem', fontSize: '1.1rem', marginTop: '1.5rem', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontWeight: 'bold', letterSpacing: '1px', boxShadow: (!selectedMethod || ((selectedMethod === 'ewallet' || selectedMethod === 'va') && !subMethod)) ? 'none' : '0 10px 20px rgba(102, 252, 241, 0.3)' }}
+                  disabled={
+                    !selectedMethod || 
+                    isProcessing || 
+                    ((selectedMethod === 'ewallet' || selectedMethod === 'va') && !subMethod) ||
+                    (selectedMethod === 'paylater' && (paylaterLimit - paylaterUsed < grandTotal))
+                  }
+                  style={{ width: '100%', padding: '1.2rem', fontSize: '1.1rem', marginTop: '1.5rem', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontWeight: 'bold', letterSpacing: '1px', boxShadow: (!selectedMethod || ((selectedMethod === 'ewallet' || selectedMethod === 'va') && !subMethod) || (selectedMethod === 'paylater' && (paylaterLimit - paylaterUsed < grandTotal))) ? 'none' : '0 10px 20px rgba(102, 252, 241, 0.3)' }}
                 >
                   {isProcessing ? (
                     <><FaSpinner className="spin" /> Verifikasi Pembayaran...</>
