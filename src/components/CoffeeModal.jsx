@@ -255,7 +255,7 @@ const CoffeeModal = ({
             </div>
 
             {/* Time Slot List */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', marginBottom: '10px' }} className="paylater-dashboard-grid-mobile">
+            <div className="time-slots-grid">
               {timeSlots.map(time => (
                 <button
                   key={time}

@@ -196,14 +196,45 @@ header {
 
 /* responsive header search & actions */
 @media (max-width: 768px) {
+    header {
+        padding: 0.8rem 3% !important;
+    }
+    .header-actions {
+        gap: 0.8rem !important;
+    }
     .nav-wallet-widget {
         padding: 0.4rem 0.7rem;
     }
     .nav-wallet-text {
-        display: none;
+        font-size: 0.75rem;
     }
     .search-container input {
-        width: 130px;
+        width: 140px;
+    }
+}
+
+@media (max-width: 680px) {
+    .search-container {
+        display: none !important;
+    }
+    .header-actions {
+        gap: 0.6rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-wallet-text {
+        display: none !important;
+    }
+    .nav-wallet-widget {
+        padding: 0.4rem;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        justify-content: center;
+    }
+    .header-actions {
+        gap: 0.5rem !important;
     }
 }
 
@@ -2728,11 +2759,62 @@ main {
         grid-template-columns: 1fr;
     }
     .featured-image {
-        min-height: 200px;
+        min-height: 180px;
+    }
+    .featured-info {
+        padding: 1.2rem !important;
+    }
+    .featured-info h3 {
+        font-size: 1.4rem !important;
+    }
+    .featured-desc {
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+    }
+    .featured-info .tags {
+        margin-bottom: 1.2rem;
+    }
+    .coffee-hero {
+        padding: 2.2rem 1.2rem !important;
+        border-radius: 16px !important;
+    }
+    .coffee-title {
+        font-size: 1.8rem !important;
+    }
+    .coffee-subtitle {
+        font-size: 0.85rem !important;
+    }
+    .coffee-search-bar {
+        margin: 1.2rem auto 0 !important;
+    }
+    .coffee-search-bar input {
+        padding: 0.9rem 1.2rem 0.9rem 2.8rem !important;
+        font-size: 0.85rem !important;
+    }
+    .coffee-search-bar .search-icon {
+        left: 1.1rem !important;
+        font-size: 1rem !important;
     }
     .coffee-controls-container {
         flex-direction: column;
         align-items: flex-start;
+        gap: 1rem !important;
+    }
+    .coffee-filters-wrapper {
+        width: 100%;
+    }
+    .coffee-filters {
+        width: 100%;
+    }
+    .coffee-sort-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 5px;
+    }
+    .coffee-sort-select {
+        width: 100%;
     }
 }
 
@@ -4402,6 +4484,33 @@ main > * {
     .paylater-dashboard-grid-mobile {
         grid-template-columns: 1fr !important;
         gap: 15px !important;
+    }
+}
+
+/* Time Slots Grid & Coffee Modal Mobile Adjustments */
+.time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 480px) {
+    .time-slots-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    .coffee-modal .modal-body {
+        padding: 1rem !important;
+    }
+    .ewallet-stat-card h3, .points-stat-card h3 {
+        font-size: 0.95rem !important;
+    }
+    .topup-btn-compact {
+        font-size: 0.65rem !important;
+        padding: 2px 4px !important;
+    }
+    .compact-profile-stats {
+        gap: 8px !important;
     }
 }
 
