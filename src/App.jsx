@@ -200,6 +200,7 @@ function App() {
         cartCount={cartItemCount} 
         onOpenCart={() => setIsCartOpen(true)}
         onOpenProfile={() => setActiveTab('profile')}
+        balance={balance}
       />
 
       <main>

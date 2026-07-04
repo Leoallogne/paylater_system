@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { FaSearch, FaShoppingBag, FaUser, FaBell, FaCircle } from 'react-icons/fa';
+import { FaSearch, FaShoppingBag, FaBell, FaCircle, FaWallet } from 'react-icons/fa';
+import { formatRupiah } from '../utils';
 
 const dummySuggestions = [
   "Joki Tugas Pemrograman",
@@ -16,7 +17,7 @@ const dummyNotifications = [
   { id: 3, title: "Level Up! 🌟", message: "Selamat! Anda resmi menjadi Platinum Member.", time: "1 hari lalu", unread: false }
 ];
 
-const Header = ({ onSearch, cartCount, onOpenCart, onOpenProfile }) => {
+const Header = ({ onSearch, cartCount, onOpenCart, onOpenProfile, balance }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -60,9 +61,15 @@ const Header = ({ onSearch, cartCount, onOpenCart, onOpenProfile }) => {
 
   return (
     <header className="glass premium-header">
-      <a href="#" className="logo">Nex<span>Store</span></a>
+      <a href="#" className="logo" onClick={(e) => { e.preventDefault(); window.location.reload(); }}>Nex<span>Store</span></a>
       <div className="header-actions">
         
+        {/* Floating E-Wallet Balance Widget */}
+        <div className="nav-wallet-widget" onClick={onOpenProfile} title="Buka Detail Profil & Saldo E-Wallet">
+          <FaWallet className="nav-wallet-icon" />
+          <span className="nav-wallet-text">{formatRupiah(balance || 0)}</span>
+        </div>
+
         {/* Search Bar with Auto-suggest */}
         <div className="search-container" ref={searchRef}>
           <FaSearch className="search-icon" />
@@ -91,7 +98,7 @@ const Header = ({ onSearch, cartCount, onOpenCart, onOpenProfile }) => {
 
         {/* Notifications */}
         <div className="action-icon-wrapper" ref={notifRef}>
-          <div className="icon-btn" onClick={() => setShowNotifications(!showNotifications)}>
+          <div className="icon-btn" onClick={() => setShowNotifications(!showNotifications)} title="Notifikasi">
             <FaBell />
             {unreadCount > 0 && <span className="pulse-indicator"></span>}
           </div>
@@ -120,16 +127,16 @@ const Header = ({ onSearch, cartCount, onOpenCart, onOpenProfile }) => {
 
         {/* Cart */}
         <div className="action-icon-wrapper">
-          <div className="icon-btn" onClick={onOpenCart}>
+          <div className="icon-btn" onClick={onOpenCart} title="Keranjang Belanja">
             <FaShoppingBag />
             {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
           </div>
         </div>
 
-        {/* Profile */}
-        <div className="action-icon-wrapper">
-          <div className="icon-btn" onClick={onOpenProfile}>
-            <FaUser />
+        {/* User Custom Avatar Ring */}
+        <div className="action-icon-wrapper" onClick={onOpenProfile} title="Lihat Profil Saya">
+          <div className="nav-avatar-btn">
+            LA
           </div>
         </div>
       </div>

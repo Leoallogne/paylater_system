@@ -142,6 +142,71 @@ header {
     align-items: center;
 }
 
+/* Premium Upgraded Navbar Additions */
+.nav-wallet-widget {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(102, 252, 241, 0.08);
+    border: 1px solid rgba(102, 252, 241, 0.15);
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    transition: var(--transition);
+    cursor: pointer;
+    user-select: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.nav-wallet-widget:hover {
+    background: rgba(102, 252, 241, 0.15);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(102, 252, 241, 0.25);
+    transform: translateY(-1px);
+}
+
+.nav-wallet-icon {
+    color: var(--accent);
+    font-size: 0.85rem;
+}
+
+.nav-avatar-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: #1A1A2E !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border: 1px solid rgba(102, 252, 241, 0.5);
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 0 8px rgba(102, 252, 241, 0.2);
+}
+
+.nav-avatar-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(102, 252, 241, 0.45);
+}
+
+/* responsive header search & actions */
+@media (max-width: 768px) {
+    .nav-wallet-widget {
+        padding: 0.4rem 0.7rem;
+    }
+    .nav-wallet-text {
+        display: none;
+    }
+    .search-container input {
+        width: 130px;
+    }
+}
+
 /* Bottom Nav (Global Floating Dock) */
 .bottom-nav {
     display: flex;
