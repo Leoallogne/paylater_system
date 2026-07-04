@@ -5,12 +5,18 @@ import SpinWheelModal from './SpinWheelModal';
 import OrderTrackingModal from './OrderTrackingModal';
 import { formatRupiah } from '../utils';
 
-const ProfileView = ({ balance, setBalance, points, setPoints, orders, _setOrders, showToast, paylaterLimit, _setPaylaterLimit, paylaterUsed, setPaylaterUsed }) => {
+const ProfileView = ({ balance, setBalance, points, setPoints, orders, _setOrders, showToast, paylaterLimit, setPaylaterLimit, paylaterUsed, setPaylaterUsed }) => {
   const [activeMenu, setActiveMenu] = useState('history');
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showSpinWheel, setShowSpinWheel] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
+
+  const [isAnalyzingLimit, setIsAnalyzingLimit] = useState(false);
+  const [installments, setInstallments] = useState([
+    { id: 1, name: 'Sony WH-1000XM5 Headphones', tenor: '3 Bulan', current: 'Bulan ke-1', amount: 500000, status: 'Belum Lunas', date: '22 Jun 2026' },
+    { id: 2, name: 'Mechanical Keyboard Keychron K2', tenor: '1 Bulan', current: 'Bulan ke-1', amount: 1000000, status: 'Belum Lunas', date: '10 Jun 2026' }
+  ]);
 
   const [chatMessage, setChatMessage] = useState('');
   const [messages, setMessages] = useState([
@@ -367,21 +373,72 @@ Tim support kami sedang melakukan verifikasi data akun Anda. Mohon ditunggu pali
         )}
 
         {activeMenu === 'paylater' && (
-          <div className="glass order-history-card-premium" style={{ animation: 'fadeIn 0.5s ease-out' }}>
-            <div className="history-header">
+          <div className="glass order-history-card-premium" style={{ animation: 'fadeIn 0.5s ease-out', maxWidth: '100%' }}>
+            <div className="history-header" style={{ marginBottom: '1.5rem' }}>
               <h2 className="section-title" style={{ fontSize: '1.5rem', marginBottom: 0 }}>Dasbor <span>NexPayLater</span></h2>
-              <span style={{ fontSize: '0.8rem', background: 'rgba(255, 215, 0, 0.1)', color: '#FFD700', padding: '4px 10px', borderRadius: '12px', border: '1px solid rgba(255,215,0,0.3)', fontWeight: 'bold' }}>Gold Tier</span>
+              <span style={{ 
+                fontSize: '0.8rem', 
+                background: paylaterLimit >= 15000000 ? 'linear-gradient(45deg, #9C27B0, #E91E63)' : 'rgba(255, 215, 0, 0.1)', 
+                color: paylaterLimit >= 15000000 ? 'white' : '#FFD700', 
+                padding: '4px 12px', 
+                borderRadius: '12px', 
+                border: paylaterLimit >= 15000000 ? 'none' : '1px solid rgba(255,215,0,0.3)', 
+                fontWeight: 'bold',
+                boxShadow: paylaterLimit >= 15000000 ? '0 3px 8px rgba(156, 39, 176, 0.3)' : 'none'
+              }}>
+                {paylaterLimit >= 15000000 ? '⭐ Platinum Elite Tier' : 'Gold Tier'}
+              </span>
             </div>
 
             {/* PayLater Limit Card */}
-            <div style={{ background: 'linear-gradient(135deg, #18191e 0%, #06070a 100%)', border: '1px solid rgba(255,215,0,0.2)', borderRadius: '20px', padding: '1.8rem', marginBottom: '2rem', position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.4)' }}>
-              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'rgba(255, 215, 0, 0.05)', borderRadius: '50%', filter: 'blur(30px)' }}></div>
+            <div style={{ background: 'linear-gradient(135deg, #18191e 0%, #06070a 100%)', border: '1px solid rgba(212,163,115,0.2)', borderRadius: '20px', padding: '1.8rem', marginBottom: '2rem', position: 'relative', overflow: 'hidden', boxShadow: '0 12px 30px rgba(0,0,0,0.5)' }}>
+              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'rgba(255, 215, 0, 0.03)', borderRadius: '50%', filter: 'blur(30px)' }}></div>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>Sisa Limit Tersedia</span>
-                <span style={{ color: '#FFD700', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bunga 0% Aktif</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '500' }}>Sisa Limit Tersedia</span>
+                <span style={{ color: '#FFD700', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bunga 0% Aktif</span>
               </div>
-              <h1 style={{ fontSize: '2.4rem', color: 'white', fontWeight: '900', margin: '0 0 1.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatRupiah(paylaterLimit - paylaterUsed)}</h1>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px', marginBottom: '1.2rem' }}>
+                <h1 style={{ fontSize: '2.5rem', color: 'white', fontWeight: '900', margin: 0, textShadow: '0 2px 10px rgba(0,0,0,0.5)', fontFamily: 'monospace' }}>
+                  {formatRupiah(paylaterLimit - paylaterUsed)}
+                </h1>
+                
+                {/* Request Limit Upgrade Button */}
+                <button
+                  disabled={isAnalyzingLimit || paylaterLimit >= 15000000}
+                  onClick={() => {
+                    setIsAnalyzingLimit(true);
+                    setTimeout(() => {
+                      setIsAnalyzingLimit(false);
+                      setPaylaterLimit(15000000);
+                      showToast("🎉 Selamat! Pengajuan disetujui. Limit NexPayLater Anda naik menjadi Rp 15.000.000!");
+                    }, 2500);
+                  }}
+                  style={{
+                    background: paylaterLimit >= 15000000 ? 'rgba(255,255,255,0.05)' : 'linear-gradient(45deg, #b8860b, #ffd700)',
+                    border: 'none',
+                    color: paylaterLimit >= 15000000 ? 'rgba(255,255,255,0.3)' : '#0B0C10',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    cursor: paylaterLimit >= 15000000 ? 'default' : 'pointer',
+                    transition: 'all 0.3s',
+                    boxShadow: paylaterLimit >= 15000000 ? 'none' : '0 4px 10px rgba(255, 215, 0, 0.2)'
+                  }}
+                >
+                  {isAnalyzingLimit ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span className="spinner-micro-paylater"></span> Menganalisis...
+                    </span>
+                  ) : paylaterLimit >= 15000000 ? (
+                    'Limit Maksimal'
+                  ) : (
+                    '⚡ Ajukan Naik Limit'
+                  )}
+                </button>
+              </div>
               
               <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginBottom: '1.5rem' }}>
                 <div style={{ height: '100%', background: 'linear-gradient(90deg, #FFD700, #FFA500)', width: `${((paylaterLimit - paylaterUsed) / paylaterLimit) * 100}%`, transition: 'all 0.5s ease' }}></div>
@@ -390,75 +447,163 @@ Tim support kami sedang melakukan verifikasi data akun Anda. Mohon ditunggu pali
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.2rem' }}>
                 <div>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '3px' }}>Total Limit Kredit</span>
-                  <strong style={{ color: 'white', fontSize: '1rem' }}>{formatRupiah(paylaterLimit)}</strong>
+                  <strong style={{ color: 'white', fontSize: '1rem', fontFamily: 'monospace' }}>{formatRupiah(paylaterLimit)}</strong>
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '3px' }}>Tagihan Aktif</span>
-                  <strong style={{ color: '#ff5252', fontSize: '1rem' }}>{formatRupiah(paylaterUsed)}</strong>
+                  <strong style={{ color: paylaterUsed > 0 ? '#ff5252' : '#4CAF50', fontSize: '1rem', fontFamily: 'monospace' }}>{formatRupiah(paylaterUsed)}</strong>
                 </div>
               </div>
             </div>
 
-            {/* Repayment and Bill detail */}
-            {paylaterUsed > 0 ? (
-              <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-                  <div>
-                    <h4 style={{ margin: 0, color: 'white', fontSize: '1rem' }}>Tagihan Bulan Ini</h4>
-                    <p style={{ margin: '3px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Jatuh tempo pada 25 Jul 2026</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '20px', marginBottom: '2rem' }} className="paylater-dashboard-grid-mobile">
+              {/* Repayment and Bill detail */}
+              <div>
+                {paylaterUsed > 0 ? (
+                  <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.3rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h4 style={{ margin: 0, color: 'white', fontSize: '0.95rem' }}>Tagihan Bulan Ini</h4>
+                        <span style={{ fontSize: '0.7rem', color: '#ff5252', background: 'rgba(255,82,82,0.1)', padding: '2px 8px', borderRadius: '8px', fontWeight: 'bold' }}>Belum Bayar</span>
+                      </div>
+                      <h2 style={{ fontSize: '1.8rem', color: '#ff5252', fontWeight: 'bold', margin: '0 0 5px', fontFamily: 'monospace' }}>{formatRupiah(paylaterUsed)}</h2>
+                      <p style={{ margin: '0 0 1.2rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Jatuh tempo pada 25 Jul 2026</p>
+                    </div>
+
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => {
+                        if (balance >= paylaterUsed) {
+                          setBalance(prev => prev - paylaterUsed);
+                          setPaylaterUsed(0);
+                          setInstallments(prev => prev.map(inst => ({ ...inst, status: 'Lunas' })));
+                          showToast("Pembayaran Tagihan NexPayLater Berhasil!");
+                        } else {
+                          showToast("Saldo E-Wallet tidak cukup untuk membayar tagihan!");
+                        }
+                      }}
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.8rem', 
+                        borderRadius: '10px', 
+                        fontWeight: 'bold', 
+                        background: 'linear-gradient(45deg, #FFD700, #FFA500)', 
+                        border: 'none', 
+                        color: '#0B0C10',
+                        boxShadow: '0 6px 15px rgba(255, 215, 0, 0.2)',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem'
+                      }}
+                    >
+                      Bayar Tagihan Sekarang
+                    </button>
                   </div>
-                  <strong style={{ fontSize: '1.3rem', color: '#ff5252' }}>{formatRupiah(paylaterUsed)}</strong>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '2.5rem 1.5rem', background: 'rgba(76, 175, 80, 0.05)', border: '1px dashed rgba(76, 175, 80, 0.2)', borderRadius: '16px', color: '#4CAF50', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <FaCheckCircle size={36} style={{ marginBottom: '10px' }} />
+                    <h4 style={{ margin: 0, fontSize: '1rem' }}>Tagihan Sudah Dilunasi</h4>
+                    <p style={{ margin: '5px 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Terima kasih atas kedisiplinan Anda membayar tepat waktu.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Billing Info Autodebit & Late Penalty */}
+              <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.3rem', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <h4 style={{ margin: 0, color: 'white', fontSize: '0.95rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>Informasi Penagihan</h4>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Status Autodebit</span>
+                  <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>Aktif (Mandiri Debit)</span>
                 </div>
-
-                <button 
-                  className="btn btn-primary"
-                  onClick={() => {
-                    if (balance >= paylaterUsed) {
-                      setBalance(prev => prev - paylaterUsed);
-                      setPaylaterUsed(0);
-                      showToast("Pembayaran Tagihan NexPayLater Berhasil!");
-                    } else {
-                      showToast("Saldo E-Wallet tidak cukup untuk membayar tagihan!");
-                    }
-                  }}
-                  style={{ 
-                    width: '100%', 
-                    padding: '0.9rem', 
-                    borderRadius: '12px', 
-                    fontWeight: 'bold', 
-                    background: 'linear-gradient(45deg, #FFD700, #FFA500)', 
-                    border: 'none', 
-                    color: '#0B0C10',
-                    boxShadow: '0 6px 15px rgba(255, 215, 0, 0.2)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Bayar Tagihan Sekarang
-                </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Jatuh Tempo</span>
+                  <span style={{ color: 'white' }}>Setiap Tanggal 25</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Tanggal Cetak</span>
+                  <span style={{ color: 'white' }}>Setiap Tanggal 10</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Denda Keterlambatan</span>
+                  <span style={{ color: '#ff5252' }}>1.5% / hari (Saat ini 0%)</span>
+                </div>
               </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '2.5rem 1.5rem', background: 'rgba(76, 175, 80, 0.05)', border: '1px dashed rgba(76, 175, 80, 0.2)', borderRadius: '16px', color: '#4CAF50', marginBottom: '2rem' }}>
-                <FaCheckCircle size={32} style={{ marginBottom: '10px' }} />
-                <h4 style={{ margin: 0, fontSize: '1.1rem' }}>Tidak Ada Tagihan Aktif</h4>
-                <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Limit kredit Anda utuh. Silakan gunakan NexPayLater pada saat checkout.</p>
-              </div>
-            )}
+            </div>
 
-            {/* Credit Score & Perks */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '20px' }}>
-              <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.2rem' }}>
-                <h4 style={{ margin: '0 0 10px', color: 'white', fontSize: '0.95rem' }}>Keuntungan NexPayLater</h4>
+            {/* Installments Table */}
+            <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem' }}>
+              <h4 style={{ margin: '0 0 1.2rem', color: 'white', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FaBoxOpen color="var(--accent)" /> Daftar Cicilan Aktif
+              </h4>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '450px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                      <th style={{ padding: '8px 5px' }}>TRANSAKSI</th>
+                      <th style={{ padding: '8px 5px' }}>TANGGAL</th>
+                      <th style={{ padding: '8px 5px' }}>TENOR</th>
+                      <th style={{ padding: '8px 5px', textAlign: 'right' }}>CICILAN/BLN</th>
+                      <th style={{ padding: '8px 5px', textAlign: 'right' }}>STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {installments.map(inst => (
+                      <tr key={inst.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: '0.8rem', color: 'white' }}>
+                        <td style={{ padding: '12px 5px', fontWeight: '600' }}>{inst.name}</td>
+                        <td style={{ padding: '12px 5px', color: 'var(--text-muted)' }}>{inst.date}</td>
+                        <td style={{ padding: '12px 5px' }}>
+                          <span style={{ background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.7rem' }}>
+                            {inst.current} / {inst.tenor}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 5px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--accent)' }}>
+                          {formatRupiah(inst.amount)}
+                        </td>
+                        <td style={{ padding: '12px 5px', textAlign: 'right' }}>
+                          <span style={{ 
+                            fontSize: '0.7rem', 
+                            fontWeight: 'bold', 
+                            padding: '2px 8px', 
+                            borderRadius: '10px', 
+                            background: inst.status === 'Lunas' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 82, 82, 0.1)', 
+                            color: inst.status === 'Lunas' ? '#4CAF50' : '#ff5252' 
+                          }}>
+                            {inst.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Credit Score Gauge & Benefit */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '20px' }} className="paylater-dashboard-grid-mobile">
+              <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.3rem' }}>
+                <h4 style={{ margin: '0 0 12px', color: 'white', fontSize: '0.95rem' }}>Keuntungan Tingkat Premium</h4>
                 <ul style={{ paddingLeft: '15px', margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <li>Bunga 0% untuk cicilan 1x (bayar bulan depan).</li>
-                  <li>Metode pembayaran aman terverifikasi sistem OJK.</li>
-                  <li>Dapatkan tambahan NexPoints gratis setiap bertransaksi.</li>
+                  <li>Bunga 0% untuk seluruh tenor pembayaran bulan depan.</li>
+                  <li>Metode enkripsi biometrik aman terverifikasi standard OJK.</li>
+                  <li>Mendapatkan cashback reward gratis dalam bentuk NexPoints.</li>
+                  <li>Akses autodebit langsung dari rekening tabungan Bank Mandiri.</li>
                 </ul>
               </div>
               
-              <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>Skor Kredit</div>
-                <div style={{ fontSize: '2rem', color: '#4CAF50', fontWeight: 'bold', textShadow: '0 0 10px rgba(76, 175, 80, 0.2)' }}>780</div>
-                <div style={{ fontSize: '0.7rem', color: '#4CAF50', background: 'rgba(76, 175, 80, 0.1)', padding: '2px 8px', borderRadius: '10px', marginTop: '5px', fontWeight: 'bold' }}>Sangat Baik</div>
+              <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.3rem', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Metrik Skor Kredit</div>
+                
+                {/* Gauge Chart SVG */}
+                <svg width="120" height="70" viewBox="0 0 100 55" style={{ marginBottom: '8px' }}>
+                  <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" strokeLinecap="round" />
+                  <path d="M 10 50 A 40 40 0 0 1 82 25" fill="none" stroke="#4CAF50" strokeWidth="8" strokeLinecap="round" strokeDasharray="180" strokeDashoffset="0" />
+                  <text x="50" y="45" textAnchor="middle" fill="white" fontWeight="bold" fontSize="11" fontFamily="monospace">780</text>
+                  <text x="50" y="54" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="6">Max 850</text>
+                </svg>
+
+                <div style={{ fontSize: '0.75rem', color: '#4CAF50', background: 'rgba(76, 175, 80, 0.1)', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold' }}>
+                  Sangat Baik
+                </div>
               </div>
             </div>
           </div>

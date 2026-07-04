@@ -3950,4 +3950,33 @@ main > * {
     color: white;
 }
 
+/* --- SPIN ANIMATIONS --- */
+.spin {
+    animation: spin-kf 1s linear infinite;
+}
+
+.spinner-micro-paylater {
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(11, 12, 16, 0.2);
+    border-top: 2px solid #0B0C10;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin-kf 0.8s linear infinite;
+    vertical-align: middle;
+}
+
+@keyframes spin-kf {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsivitas Dasbor Paylater Mobile */
+@media (max-width: 768px) {
+    .paylater-dashboard-grid-mobile {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+}
+
 
