@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { FaUser, FaHistory, FaHeadset, FaPaperPlane, FaBoxOpen, FaCheckCircle, FaWallet, FaChevronRight, FaGift, FaGamepad, FaCoins, FaCalendarDay } from 'react-icons/fa';
+import { FaUser, FaHistory, FaHeadset, FaPaperPlane, FaBoxOpen, FaCheckCircle, FaWallet, FaChevronRight, FaGift, FaGamepad, FaCoins, FaCalendarDay, FaHeadphones, FaKeyboard, FaDownload, FaTruck, FaCoffee } from 'react-icons/fa';
 import DailyRewardModal from './DailyRewardModal';
 import SpinWheelModal from './SpinWheelModal';
 import OrderTrackingModal from './OrderTrackingModal';
@@ -7,6 +7,7 @@ import { formatRupiah } from '../utils';
 
 const ProfileView = ({ balance, setBalance, points, setPoints, orders, _setOrders, showToast, paylaterLimit, setPaylaterLimit, paylaterUsed, setPaylaterUsed }) => {
   const [activeMenu, setActiveMenu] = useState('history');
+  const [historyFilter, setHistoryFilter] = useState('Semua');
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showSpinWheel, setShowSpinWheel] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -17,6 +18,49 @@ const ProfileView = ({ balance, setBalance, points, setPoints, orders, _setOrder
     { id: 1, name: 'Sony WH-1000XM5 Headphones', tenor: '3 Bulan', current: 'Bulan ke-1', amount: 500000, status: 'Belum Lunas', date: '22 Jun 2026' },
     { id: 2, name: 'Mechanical Keyboard Keychron K2', tenor: '1 Bulan', current: 'Bulan ke-1', amount: 1000000, status: 'Belum Lunas', date: '10 Jun 2026' }
   ]);
+
+  const getOrderIcon = (name, type) => {
+    const lowerName = name.toLowerCase();
+    const isDigital = type === 'digital' || lowerName.includes('e-book') || lowerName.includes('book') || lowerName.includes('license');
+    
+    if (isDigital) {
+      return {
+        icon: <FaDownload />,
+        background: 'linear-gradient(135deg, #ab47bc 0%, #7b1fa2 100%)',
+        shadow: '0 4px 12px rgba(171, 71, 188, 0.3)'
+      };
+    }
+    
+    if (lowerName.includes('headphones') || lowerName.includes('headset') || lowerName.includes('audio') || lowerName.includes('sony')) {
+      return {
+        icon: <FaHeadphones />,
+        background: 'linear-gradient(135deg, #26c6da 0%, #00acc1 100%)',
+        shadow: '0 4px 12px rgba(38, 198, 218, 0.3)'
+      };
+    }
+    
+    if (lowerName.includes('keyboard') || lowerName.includes('keychron') || lowerName.includes('switch')) {
+      return {
+        icon: <FaKeyboard />,
+        background: 'linear-gradient(135deg, #ff7043 0%, #f4511e 100%)',
+        shadow: '0 4px 12px rgba(255, 112, 67, 0.3)'
+      };
+    }
+    
+    if (lowerName.includes('kopi') || lowerName.includes('coffee') || lowerName.includes('cafe')) {
+      return {
+        icon: <FaCoffee />,
+        background: 'linear-gradient(135deg, #8d6e63 0%, #5d4037 100%)',
+        shadow: '0 4px 12px rgba(141, 110, 99, 0.3)'
+      };
+    }
+    
+    return {
+      icon: <FaBoxOpen />,
+      background: 'linear-gradient(135deg, #26a69a 0%, #00897b 100%)',
+      shadow: '0 4px 12px rgba(38, 166, 154, 0.3)'
+    };
+  };
 
   const [chatMessage, setChatMessage] = useState('');
   const [messages, setMessages] = useState([
@@ -290,43 +334,94 @@ Tim support kami sedang melakukan verifikasi data akun Anda. Mohon ditunggu pali
       <div className="profile-content-premium">
         {activeMenu === 'history' && (
           <div className="glass order-history-card-premium">
-            <div className="history-header">
+            <div className="history-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
               <h2 className="section-title" style={{ fontSize: '1.5rem', marginBottom: 0 }}>Riwayat Pesanan <span>Terbaru</span></h2>
-              <button className="btn-filter-history">Filter Bulan Ini</button>
+              <div className="history-filter-pills" style={{ display: 'flex', gap: '8px', width: '100%', overflowX: 'auto', paddingBottom: '5px' }}>
+                {['Semua', 'Sedang Dikemas', 'Sedang Dikirim', 'Selesai'].map(pill => (
+                  <button
+                    key={pill}
+                    className={`filter-pill ${historyFilter === pill ? 'active' : ''}`}
+                    onClick={() => setHistoryFilter(pill)}
+                    style={{
+                      background: historyFilter === pill ? 'rgba(102, 252, 241, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                      border: `1px solid ${historyFilter === pill ? 'var(--accent)' : 'rgba(255,255,255,0.08)'}`,
+                      color: historyFilter === pill ? 'var(--accent)' : 'var(--text-muted)',
+                      padding: '0.4rem 1rem',
+                      borderRadius: '20px',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      whiteSpace: 'nowrap',
+                      boxShadow: historyFilter === pill ? '0 0 10px rgba(102, 252, 241, 0.15)' : 'none'
+                    }}
+                  >
+                    {pill}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="order-items-list" style={{ maxHeight: '420px', overflowY: 'auto' }}>
-              {orders.length === 0 ? (
+              {orders.filter(order => {
+                if (historyFilter === 'Semua') return true;
+                return order.status.toLowerCase().includes(historyFilter.toLowerCase());
+              }).length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
                   <FaBoxOpen size={40} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-                  <p>Belum ada riwayat pesanan.</p>
+                  <p>Tidak ada riwayat pesanan dengan status "{historyFilter}".</p>
                 </div>
               ) : (
-                orders.map(order => (
-                  <div
-                    key={order.id}
-                    className="order-item-premium"
-                    onClick={() => setSelectedOrder(order)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className="order-item-icon">
-                      <FaBoxOpen />
-                    </div>
-                    <div className="order-info-premium">
-                      <h4 style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '250px' }}>{order.name}</h4>
-                      <span className="order-meta">{order.invoice} • {order.date}</span>
-                      <span className="order-price">{formatRupiah(order.price)}</span>
-                    </div>
-                    <div className="order-status-container">
-                      <span className={`order-status ${order.status === 'Selesai' ? 'status-success' : 'status-shipping'}`}>{order.status}</span>
-                      {order.status === 'Selesai' ? (
-                        <button className="btn-buy-again" onClick={(e) => { e.stopPropagation(); alert("Ditambahkan kembali ke keranjang! (Simulasi)"); }}>Beli Lagi</button>
-                      ) : (
-                        <button className="btn-track" onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}>Lacak</button>
-                      )}
-                    </div>
-                  </div>
-                ))
+                orders
+                  .filter(order => {
+                    if (historyFilter === 'Semua') return true;
+                    return order.status.toLowerCase().includes(historyFilter.toLowerCase());
+                  })
+                  .map(order => {
+                    const cardStyle = getOrderIcon(order.name, order.type);
+                    return (
+                      <div
+                        key={order.id}
+                        className="order-item-premium"
+                        onClick={() => setSelectedOrder(order)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <div className="order-item-icon" style={{ background: cardStyle.background, color: 'white', boxShadow: cardStyle.shadow }}>
+                          {cardStyle.icon}
+                        </div>
+                        <div className="order-info-premium">
+                          <h4 style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '280px', color: 'white', fontWeight: '600' }}>{order.name}</h4>
+                          <span className="order-meta">{order.invoice} • {order.date}</span>
+                          <span className="order-price" style={{ color: 'var(--accent)', fontFamily: 'monospace' }}>{formatRupiah(order.price)}</span>
+                        </div>
+                        <div className="order-status-container">
+                          <span className={`order-status ${
+                            order.status === 'Selesai' ? 'status-success' : 
+                            order.status.includes('Kemas') ? 'status-processing' : 'status-shipping'
+                          }`} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <span style={{ 
+                              display: 'inline-block', 
+                              width: '6px', 
+                              height: '6px', 
+                              borderRadius: '50%', 
+                              background: 'currentColor',
+                              animation: order.status !== 'Selesai' ? 'pulse-cs 1.5s infinite' : 'none'
+                            }}></span>
+                            {order.status}
+                          </span>
+                          {order.status === 'Selesai' ? (
+                            <button className="btn-buy-again" onClick={(e) => { e.stopPropagation(); alert("Ditambahkan kembali ke keranjang! (Simulasi)"); }} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <FaHistory size={12} /> Beli Lagi
+                            </button>
+                          ) : (
+                            <button className="btn-track" onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <FaTruck size={12} /> Lacak
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
               )}
             </div>
           </div>
